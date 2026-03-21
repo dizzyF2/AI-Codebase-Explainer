@@ -1,7 +1,7 @@
-import ActionSection from "@/components/actionSection";
-import Features from "@/components/features-section";
+import ActionSection from "@/components/LandingPage/actionSection";
+import Features from "@/components/LandingPage/features-section";
 import Footer from "@/components/footer";
-import Hero from "@/components/hero";
+import Hero from "@/components/LandingPage/hero";
 import Navbar from "@/components/navbar";
 
 
