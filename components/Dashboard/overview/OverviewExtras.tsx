@@ -1,5 +1,5 @@
 import { RepoData, TabKey } from "@/types";
-import { motion } from "framer-motion"
+import { motion } from "motion/react"
 import TechMiniCard from "./TechMiniCard";
 
 

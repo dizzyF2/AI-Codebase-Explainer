@@ -31,7 +31,7 @@ function SidebarWrapper({data, TABS, activeTab, setActiveTab}: GProps) {
                         key={key}
                         onClick={() => setActiveTab(key)}
                         className={cn(
-                            "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                            "flex w-full items-center gap-3 cursor-pointer rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                             activeTab === key
                             ? "bg-indigo-600/20 text-white"
                             : "text-slate-400 hover:bg-white/5 hover:text-slate-200"

@@ -1,7 +1,7 @@
 'use client'
 
 import { RepoData, TabKey } from "@/types";
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import OverviewTab from "./OverviewTab";
 import StructureTab from "./StructureTab";
 import TechStackTab from "./TechStackTab";
