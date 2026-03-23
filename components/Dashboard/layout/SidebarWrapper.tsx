@@ -14,14 +14,15 @@ interface GProps {
 
 function SidebarWrapper({data, TABS, activeTab, setActiveTab}: GProps) {
     const router = useRouter()
+    const [owner = "", repo = ""] = data.repoName?.split("/") || [];
 
 
     return (
         <aside className="fixed left-0 top-14 flex h-[calc(100vh-3.5rem)] w-56 flex-col border-r border-white/5 bg-[#0a0f1e] px-3 py-5">
             {/* Project info */}
-            <div className="mb-6 px-2">
-            <p className="font-semibold text-white">{data.repoName.split("/")[0] === "facebook" ? "Project Alpha" : data.repoName}</p>
-            <p className="mt-0.5 text-xs text-slate-500">{data.branch}</p>
+            <div className="mb-6 px-2 capitalize">
+                <p className="font-semibold text-white">{repo || data.repoName}</p>
+                <p className="mt-0.5 text-xs text-slate-500">owner:{" "}{owner}</p>
             </div>
 
             {/* Nav */}

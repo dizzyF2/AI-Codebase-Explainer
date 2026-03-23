@@ -24,12 +24,18 @@ export interface ImportantFile {
 export interface RepoData {
     repoName: string;
     branch: string;
-    stars: string;
-    language: string;
-    forks: string;
-    summary: string;
-    summaryDetail: string;
+    stars: number;
+    forks: number;
+    language: string | null;
+
+    // From AI (later)
+    summary?: string;
+    summaryDetail?: string;
+
+    // Processed from GitHub contents
     structure: FileNode[];
+
+    // From AI (later)
     techStack: TechItem[];
     importantFiles: ImportantFile[];
 }

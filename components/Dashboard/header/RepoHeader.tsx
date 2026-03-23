@@ -3,7 +3,7 @@ import React from 'react'
 import { RepoData } from '@/types';
 import { Button } from '@/components/ui/button';
 
-function RepoHeader({data, repoName}: {data: RepoData, repoName: string }) {
+function RepoHeader({data,}: {data: RepoData}) {
     return (
     <div className="mb-6">
         <div className="mb-3 flex items-center gap-2 text-xs text-slate-500">
@@ -18,21 +18,22 @@ function RepoHeader({data, repoName}: {data: RepoData, repoName: string }) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
             <h1 className="text-4xl font-black tracking-tight text-white">
-                {repoName}
+                {data.repoName}
             </h1>
             <div className="mt-3 flex flex-wrap items-center gap-2">
                 <StatBadge 
-                icon={<Star className="h-3.5 w-3.5 text-yellow-400" />}
-                value={data.stars} 
+                    icon={<Star className="h-3.5 w-3.5 text-yellow-400" />}
+                    value={data.stars.toString()} 
                 />
+                {data.language && (
+                    <StatBadge
+                        icon={<span className="h-2 w-2 rounded-full bg-blue-400" />}
+                        value={data.language}
+                    />
+                )}
                 <StatBadge
-                icon={<span className="h-2 w-2 rounded-full bg-blue-400" />}
-                value={data.language}
-                dot
-                />
-                <StatBadge
-                icon={<GitFork className="h-3.5 w-3.5 text-slate-400" />}
-                value={data.forks} 
+                    icon={<GitFork className="h-3.5 w-3.5 text-slate-400" />}
+                    value={data.forks.toString()} 
                 />
             </div>
             </div>
@@ -61,7 +62,7 @@ function RepoHeader({data, repoName}: {data: RepoData, repoName: string }) {
 
 export default RepoHeader
 
-function StatBadge({icon,value}: {icon: React.ReactNode;value: string;dot?: boolean;}) {
+function StatBadge({icon,value}: {icon: React.ReactNode;value: string}) {
     return (
         <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-slate-200">
             {icon}
