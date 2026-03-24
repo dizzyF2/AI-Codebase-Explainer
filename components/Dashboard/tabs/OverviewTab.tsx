@@ -18,22 +18,16 @@ export default function OverviewTab({ data }: {data: RepoData}) {
 
             {/* Summary headline */}
             <h3 className="mb-4 text-xl font-bold leading-snug text-white">
-                {data.summary}
+                {data.summary || "Analyzing repository..."}
             </h3>
 
             {/* Detail paragraphs */}
-            {data.summaryDetail?.split("\n\n").map((para, i) => (
-                <p key={i} className="mb-3 text-sm leading-relaxed text-slate-400">
-                    {para.includes("Virtual DOM") ? (
-                        <>
-                            Key architectural patterns observed include the{" "}
-                            <em className="italic text-slate-300">Virtual DOM implementation</em>
-                            {para.split("Virtual DOM implementation")[1]}
-                        </>
-                    ) : (
-                        para
-                    )}
-                </p>
+            {(data.summaryDetail || "Generating detailed analysis...")
+                .split("\n\n")
+                .map((para, i) => (
+                    <p key={i} className="mb-3 text-sm leading-relaxed text-slate-400">
+                        {para}
+                    </p>
             ))}
         </div>
     );

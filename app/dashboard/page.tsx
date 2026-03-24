@@ -3,7 +3,7 @@
 import MainContent from '@/components/Dashboard/layout/MainContent'
 import SidebarWrapper from '@/components/Dashboard/layout/SidebarWrapper'
 import Navbar from '@/components/navbar'
-import { GitHubContent, ImportantFile, RepoData, TabKey } from '@/types';
+import { GitHubContent, ImportantFile, RepoData, TabKey, TechItem } from '@/types';
 import { FileSearch, FolderTree, Layers, LayoutDashboard } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -69,6 +69,29 @@ function DashboardPage() {
                 });
             }
 
+            const aiRes = await fetch("/api/openai-analyze", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    owner,
+                    repo: name,
+                    readmeContent: result.readmeContent,
+                    packageJsonContent: result.packageJsonContent,
+                }),
+            });
+
+            const aiData = await aiRes.json();
+            console.log("AI DATA:", aiData);
+
+            if (!aiRes.ok) {
+            throw new Error(aiData.error || "AI failed");
+            }
+
+            const normalizedTechStack = (aiData.data?.techStack || []).map((tech: TechItem) => ({
+            name: tech.name?.trim?.() || "Unknown",
+            category: tech.category?.toUpperCase?.() || "TOOLING",
+            }));
+
             const repoData: RepoData = {
                 repoName: `${owner}/${name}`,
                 branch: result.data.branch || "main",
@@ -76,8 +99,8 @@ function DashboardPage() {
                 forks: result.data.forks || 0,
                 language: result.data.language || "Unknown",
 
-                summary: "", //TODO: ai will gen later
-                summaryDetail: "", // TODO: ai will gen later
+                summary: aiData.summary || "",
+                summaryDetail: aiData.summaryDetail || "",
 
                 structure: result.data.structure.map((file: GitHubContent) => ({
                     name: file.name,
@@ -85,7 +108,7 @@ function DashboardPage() {
                     children: file.type === "dir" ? [] : undefined,
                 })),
 
-                techStack: [], //TODO: ai will gen later
+                techStack: normalizedTechStack,
                 importantFiles,
 
                 readmeContent: result.readmeContent,

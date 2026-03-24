@@ -12,8 +12,7 @@ function OverviewExtras({ data, onViewAllFiles }:{data: RepoData, onViewAllFiles
                 {data.techStack.slice(0, 4).map((tech) => (
                     <TechMiniCard
                         key={tech.name}
-                        name={tech.name}
-                        category={tech.category}
+                        tech={tech}
                     />
                 ))}
             </motion.div>
