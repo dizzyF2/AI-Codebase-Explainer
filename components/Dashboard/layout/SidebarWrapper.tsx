@@ -44,7 +44,6 @@ function SidebarWrapper({data, TABS, activeTab, setActiveTab}: GProps) {
                 ))}
             </nav>
 
-            {/* New Scan button at bottom */}
             <div className="mt-auto">
                 <Button
                     onClick={() => router.push("/")}

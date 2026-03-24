@@ -21,6 +21,24 @@ export interface ImportantFile {
     icon?: "gear" | "book" | "rocket" | "code";
 }
 
+export interface GitHubContent {
+    name: string;
+    path: string;
+    sha: string;
+    size: number;
+    url: string;
+    html_url: string;
+    git_url: string;
+    download_url: string | null;
+    type: "file" | "dir" | "symlink" | "submodule";
+    _links: {
+        self: string;
+        git: string;
+        html: string;
+    };
+}
+
+
 export interface RepoData {
     repoName: string;
     branch: string;

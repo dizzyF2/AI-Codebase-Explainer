@@ -3,7 +3,7 @@
 import MainContent from '@/components/Dashboard/layout/MainContent'
 import SidebarWrapper from '@/components/Dashboard/layout/SidebarWrapper'
 import Navbar from '@/components/navbar'
-import { RepoData, TabKey } from '@/types';
+import { GitHubContent, RepoData, TabKey } from '@/types';
 import { FileSearch, FolderTree, Layers, LayoutDashboard } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -12,7 +12,6 @@ function DashboardPage() {
     
     const searchParams = useSearchParams();
     const repo = searchParams.get("repo") ?? "facebook/react";
-    const repoName = repo.replace("https://github.com/", "");
     
     const [activeTab, setActiveTab] = useState<TabKey>("overview");
     const [data, setData] = useState<RepoData | null>(null);
@@ -38,12 +37,13 @@ function DashboardPage() {
             const res = await fetch("/api/github", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({ owner, repo: name }),
             });
 
             const result = await res.json();
+            console.log(result)
 
             if (!res.ok) {
             throw new Error(result.error || "Failed to fetch repo");
@@ -52,18 +52,19 @@ function DashboardPage() {
             // TEMP mapping
             const repoData: RepoData = {
             repoName: `${owner}/${name}`,
-            branch: "main",
-            stars: 0,
-            forks: 0,
-            language: "Unknown",
-            summary: "",
-            summaryDetail: "",
-            structure: result.data.map((file: any) => ({
+            branch: result.data.branch || "main",
+            stars: result.data.stars || 0,
+            forks: result.data.forks || 0,
+            language: result.data.language || "Unknown",
+            summary: "", //TODO: ai will gen later
+            summaryDetail: "", // TODO: ai will gen later
+            techStack: [], //TODO: ai will gen later
+            importantFiles: [], //TODO: ai will gen later
+            structure: result.data.structure.map((file: GitHubContent) => ({
                 name: file.name,
                 type: file.type === "dir" ? "folder" : "file",
+                children: file.type === "dir" ? [] : undefined,
             })),
-            techStack: [],
-            importantFiles: [],
             };
 
             setData(repoData);
@@ -103,7 +104,7 @@ function DashboardPage() {
             <Navbar />
             <div className="flex pt-14">
                 <SidebarWrapper data={data} TABS={TABS} activeTab={activeTab} setActiveTab={setActiveTab}/>
-                <MainContent data={data} repoName={repoName} activeTab={activeTab} setActiveTab={setActiveTab}/>
+                <MainContent data={data} activeTab={activeTab} setActiveTab={setActiveTab}/>
             </div>
         </div>
     )
