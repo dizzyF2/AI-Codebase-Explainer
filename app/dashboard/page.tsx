@@ -3,7 +3,7 @@
 import MainContent from '@/components/Dashboard/layout/MainContent'
 import SidebarWrapper from '@/components/Dashboard/layout/SidebarWrapper'
 import Navbar from '@/components/navbar'
-import { GitHubContent, RepoData, TabKey } from '@/types';
+import { GitHubContent, ImportantFile, RepoData, TabKey } from '@/types';
 import { FileSearch, FolderTree, Layers, LayoutDashboard } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -49,7 +49,26 @@ function DashboardPage() {
             throw new Error(result.error || "Failed to fetch repo");
             }
 
-            // TEMP mapping
+            const importantFiles: ImportantFile[] = [];
+
+            if (result.readmeContent) {
+                importantFiles.push({
+                    name: "README.md",
+                    description: "Project documentation and overview",
+                    ext: "MD",
+                    icon: "book",
+                });
+            }
+
+            if (result.packageJsonContent) {
+                importantFiles.push({
+                    name: "package.json",
+                    description: "Project dependencies and scripts",
+                    ext: "JSON",
+                    icon: "gear",
+                });
+            }
+
             const repoData: RepoData = {
             repoName: `${owner}/${name}`,
             branch: result.data.branch || "main",
@@ -59,7 +78,7 @@ function DashboardPage() {
             summary: "", //TODO: ai will gen later
             summaryDetail: "", // TODO: ai will gen later
             techStack: [], //TODO: ai will gen later
-            importantFiles: [], //TODO: ai will gen later
+            importantFiles, //TODO: ai will gen later
             structure: result.data.structure.map((file: GitHubContent) => ({
                 name: file.name,
                 type: file.type === "dir" ? "folder" : "file",

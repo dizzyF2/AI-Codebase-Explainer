@@ -22,7 +22,7 @@ export default function OverviewTab({ data }: {data: RepoData}) {
             </h3>
 
             {/* Detail paragraphs */}
-            {data.summaryDetail.split("\n\n").map((para, i) => (
+            {data.summaryDetail?.split("\n\n").map((para, i) => (
                 <p key={i} className="mb-3 text-sm leading-relaxed text-slate-400">
                     {para.includes("Virtual DOM") ? (
                         <>

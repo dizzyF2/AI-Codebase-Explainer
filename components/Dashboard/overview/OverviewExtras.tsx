@@ -1,6 +1,7 @@
 import { RepoData, TabKey } from "@/types";
 import { motion } from "motion/react"
 import TechMiniCard from "./TechMiniCard";
+import FileCard from "../FileCard";
 
 
 function OverviewExtras({ data, onViewAllFiles }:{data: RepoData, onViewAllFiles: (key: TabKey) => void}) {
@@ -33,27 +34,9 @@ function OverviewExtras({ data, onViewAllFiles }:{data: RepoData, onViewAllFiles
                     </button>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-3">
-                    {data.importantFiles.map((file) => {
-                        const ICON_MAP: Record<string, string> = { gear: "⚙", book: "📖", rocket: "🚀" };
-                        return (
-                        <div
-                            key={file.name}
-                            className="rounded-xl border border-white/8 bg-[#111827] p-5 hover:border-white/15 transition-colors"
-                        >
-                            <div className="mb-3 flex items-start justify-between">
-                                <span className="text-xl">{ICON_MAP[file.icon ?? ""] ?? "📄"}</span>
-                                <span className="rounded border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-slate-400">
-                                    {file.ext}
-                                </span>
-                            </div>
-                            <p className="mb-1 font-semibold text-white">{file.name}</p>
-                            <p className="text-xs leading-relaxed text-slate-400">{file.description}</p>
-                            <button className="mt-4 flex w-full items-center justify-center gap-1.5 border-t border-white/5 pt-4 text-xs text-slate-400 hover:text-white transition-colors">
-                                View Details <span className="text-slate-600">👁</span>
-                            </button>
-                        </div>
-                        );
-                    })}
+                    {data.importantFiles.map((file) => (
+                        <FileCard key={file.name} file={file} />
+                    ))}
                 </div>
             </motion.div>
         </>
