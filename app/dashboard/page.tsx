@@ -70,20 +70,26 @@ function DashboardPage() {
             }
 
             const repoData: RepoData = {
-            repoName: `${owner}/${name}`,
-            branch: result.data.branch || "main",
-            stars: result.data.stars || 0,
-            forks: result.data.forks || 0,
-            language: result.data.language || "Unknown",
-            summary: "", //TODO: ai will gen later
-            summaryDetail: "", // TODO: ai will gen later
-            techStack: [], //TODO: ai will gen later
-            importantFiles, //TODO: ai will gen later
-            structure: result.data.structure.map((file: GitHubContent) => ({
-                name: file.name,
-                type: file.type === "dir" ? "folder" : "file",
-                children: file.type === "dir" ? [] : undefined,
-            })),
+                repoName: `${owner}/${name}`,
+                branch: result.data.branch || "main",
+                stars: result.data.stars || 0,
+                forks: result.data.forks || 0,
+                language: result.data.language || "Unknown",
+
+                summary: "", //TODO: ai will gen later
+                summaryDetail: "", // TODO: ai will gen later
+
+                structure: result.data.structure.map((file: GitHubContent) => ({
+                    name: file.name,
+                    type: file.type === "dir" ? "folder" : "file",
+                    children: file.type === "dir" ? [] : undefined,
+                })),
+
+                techStack: [], //TODO: ai will gen later
+                importantFiles,
+
+                readmeContent: result.readmeContent,
+                packageJsonContent: result.packageJsonContent,
             };
 
             setData(repoData);

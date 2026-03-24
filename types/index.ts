@@ -46,16 +46,16 @@ export interface RepoData {
     forks: number;
     language: string | null;
 
-    // From AI (later)
     summary?: string;
     summaryDetail?: string;
 
-    // Processed from GitHub contents
     structure: FileNode[];
 
-    // From AI (later)
     techStack: TechItem[];
     importantFiles: ImportantFile[];
+
+    readmeContent?: string | null;
+    packageJsonContent?: string | null;
 }
 
 export type LoadingStep = {
