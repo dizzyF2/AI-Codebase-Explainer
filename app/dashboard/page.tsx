@@ -77,6 +77,7 @@ function DashboardPage() {
                     repo: name,
                     readmeContent: result.readmeContent,
                     packageJsonContent: result.packageJsonContent,
+                    forceRefresh: true,
                 }),
             });
 
@@ -99,8 +100,8 @@ function DashboardPage() {
                 forks: result.data.forks || 0,
                 language: result.data.language || "Unknown",
 
-                summary: aiData.summary || "",
-                summaryDetail: aiData.summaryDetail || "",
+                summary: aiData.data?.summary || "",
+                summaryDetail: aiData.data?.summaryDetail || "",
 
                 structure: result.data.structure.map((file: GitHubContent) => ({
                     name: file.name,

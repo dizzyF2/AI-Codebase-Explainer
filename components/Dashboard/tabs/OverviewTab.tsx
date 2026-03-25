@@ -3,6 +3,16 @@ import type { RepoData } from "@/types";
 
 
 export default function OverviewTab({ data }: {data: RepoData}) {
+
+    const safeSummary =
+        data.summary && data.summary.length > 10
+            ? data.summary
+            : "This repository could not be analyzed due to limited information.";
+
+    const safeDetail =
+        data.summaryDetail && data.summaryDetail.length > 20
+            ? data.summaryDetail
+            : "Try analyzing a repository with a detailed README or configuration files.";
     return (
         <div className="rounded-xl border border-white/8 bg-[#111827] p-6">
             {/* AI Badge */}
@@ -18,11 +28,11 @@ export default function OverviewTab({ data }: {data: RepoData}) {
 
             {/* Summary headline */}
             <h3 className="mb-4 text-xl font-bold leading-snug text-white">
-                {data.summary || "Analyzing repository..."}
+                {safeSummary}
             </h3>
 
             {/* Detail paragraphs */}
-            {(data.summaryDetail || "Generating detailed analysis...")
+            {safeDetail
                 .split("\n\n")
                 .map((para, i) => (
                     <p key={i} className="mb-3 text-sm leading-relaxed text-slate-400">
