@@ -1,100 +1,64 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import { createClient } from "@supabase/supabase-js";
 
 const openai = new OpenAI({
-    apiKey: process.env.OPENROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
+    apiKey: process.env.OPENAI_API_KEY,
 });
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-// delay helper
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
 export async function POST(req: Request) {
-    const {
-        owner,
-        repo,
-        readmeContent,
-        packageJsonContent,
-        forceRefresh,
-    } = await req.json();
-
-    const fullName = `${owner}/${repo}`;
+    const { readmeContent, packageJsonContent } =
+        await req.json();
 
     try {
-        // Check cache
-        const { data: cached } = await supabase
-        .from("ai_cache")
-        .select("*")
-        .eq("repo_full_name", fullName)
-        .single();
+        const hasReadme =
+        readmeContent && readmeContent.length > 200;
+        const hasPackageJson =
+        packageJsonContent && packageJsonContent.includes("{");
 
-        const isCachedFailure =
-        cached?.summary?.includes("unavailable") ||
-        cached?.summary?.includes("Could not");
-
-        // Only return cache if it's NOT a failure
-        if (cached && !forceRefresh && !isCachedFailure) {
-        return NextResponse.json({ data: cached });
-        }
-
-        // Weak repo detection
-        const isWeakRepo =
-        !readmeContent ||
-        readmeContent.length < 200 ||
-        readmeContent.toLowerCase().includes("coming soon") ||
-        readmeContent.toLowerCase().includes("todo") ||
-        (readmeContent.toLowerCase().includes("odoo") &&
-            !packageJsonContent);
-
-        if (isWeakRepo) {
-        const fallbackData = {
-            summary: "Not enough information to analyze this repository.",
+        if (!hasReadme && !hasPackageJson) {
+        return NextResponse.json({
+            data: {
+            summary: "Not enough data to analyze this repository.",
             summaryDetail:
-            "This repository does not contain sufficient documentation or configuration files for meaningful analysis.",
+                "This repository does not contain a meaningful README or package.json file.",
             techStack: [],
             importantFiles: [],
-        };
-
-        // cache (this is safe fallback, not AI failure)
-        await supabase.from("ai_cache").upsert({
-            repo_full_name: fullName,
-            summary: fallbackData.summary,
-            summary_detail: fallbackData.summaryDetail,
-            tech_stack: [],
-            important_files: [],
+            },
         });
-
-        return NextResponse.json({ data: fallbackData });
         }
 
-        // Trim inputs
-        const trimmedReadme = readmeContent?.slice(0, 4000) || "N/A";
-        const trimmedPackage = packageJsonContent?.slice(0, 2000) || "N/A";
+        const trimmedReadme = hasReadme
+        ? readmeContent.slice(0, 3000)
+        : "No README provided";
 
-        // Prompt
+        const trimmedPackage = hasPackageJson
+        ? packageJsonContent.slice(0, 1500)
+        : "No package.json provided";
+
         const prompt = `
-    You are an expert software engineer.
+    You are an expert software engineer analyzing a GitHub repository.
 
-    Analyze this GitHub repository and return ONLY valid JSON.
+    Your job:
+    1. Generate a short summary (1-2 sentences) USING README only
+    2. Generate a detailed explanation of the project (summaryDetail)
+    3. Extract tech stack STRICTLY from package.json dependencies
+    4. Identify important files ONLY if clearly relevant
 
-    Required JSON format:
+    Return ONLY valid JSON:
+
     {
-    "summary": "short 1-2 sentence summary",
-    "summaryDetail": "clear explanation of what the project does and how it works",
+    "summary": "string",
+    "summaryDetail": "string",
     "techStack": [{ "name": "string", "category": "frontend | backend | database | tooling" }],
-    "importantFiles": [{ "name": "string", "description": "short explanation", "ext": "string", "icon": "string" }]
+    "importantFiles": [{ "name": "string", "description": "string", "ext": "string", "icon": "string" }]
     }
 
     Rules:
-    - Be concise and clear
-    - Do NOT include any text outside JSON
-    - Do NOT hallucinate if info is missing
+    - If README is weak → keep summary short and generic
+    - If package.json is missing → techStack = []
+    - DO NOT guess technologies not in package.json
+    - DO NOT hallucinate
+    - Be concise
 
     README:
     ${trimmedReadme}
@@ -103,62 +67,17 @@ export async function POST(req: Request) {
     ${trimmedPackage}
     `;
 
-        // Model fallback system
-        const models = [
-        "openrouter/free",
-        "meta-llama/llama-3.1-8b-instruct:free",
-        "mistralai/mistral-7b-instruct:free",
-        ];
-
-        type ChatCompletion = {
-        choices: {
-            message: { content: string | null };
-        }[];
-        };
-
-        let completion: ChatCompletion | null = null;
-
-        for (const model of models) {
-        try {
-            await sleep(1000);
-
-            const res = await openai.chat.completions.create({
-            model,
-            messages: [{ role: "user", content: prompt }],
-            temperature: 0.2,
-            max_tokens: 700,
-            });
-
-            const content = res?.choices?.[0]?.message?.content;
-
-            if (content && content.length > 20) {
-            completion = res;
-            break;
-            }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (err) {
-            console.warn(`Model failed: ${model}`);
-        }
-        }
-
-        // All models failed
-        if (!completion) {
-        return NextResponse.json({
-            data: {
-            summary: "AI analysis temporarily unavailable.",
-            summaryDetail:
-                "All AI providers are currently rate-limited. Try again shortly.",
-            techStack: [],
-            importantFiles: [],
-            },
+        const completion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.2,
+        max_tokens: 600,
         });
-        }
 
         const text = completion.choices?.[0]?.message?.content || "{}";
 
         let aiData;
 
-        // Safe parsing
         try {
         aiData = JSON.parse(text);
         } catch {
@@ -170,34 +89,16 @@ export async function POST(req: Request) {
         };
         }
 
-        //Detect bad AI output
-        const isBadResponse =
-        !aiData.summary || aiData.summary.trim().length < 5;
-
-        if (isBadResponse) {
-        aiData = {
-            summary: "Could not generate a reliable summary.",
-            summaryDetail:
-            "The AI response was incomplete or unclear. Try another repository.",
-            techStack: [],
-            importantFiles: [],
-        };
+        if (!aiData.summary || aiData.summary.length < 5) {
+        aiData.summary = "Could not generate a reliable summary.";
         }
 
-        //Cache ONLY valid results
-        const isFailure =
-        aiData.summary?.includes("unavailable") ||
-        aiData.summary?.includes("Could not") ||
-        aiData.summary?.length < 10;
-        
-        if (!isFailure) {
-        await supabase.from("ai_cache").upsert({
-            repo_full_name: fullName,
-            summary: aiData.summary,
-            summary_detail: aiData.summaryDetail,
-            tech_stack: aiData.techStack || [],
-            important_files: aiData.importantFiles || [],
-        });
+        if (!Array.isArray(aiData.techStack)) {
+        aiData.techStack = [];
+        }
+
+        if (!Array.isArray(aiData.importantFiles)) {
+        aiData.importantFiles = [];
         }
 
         return NextResponse.json({ data: aiData });
