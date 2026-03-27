@@ -7,7 +7,7 @@ import StructureTab from "./StructureTab";
 import TechStackTab from "./TechStackTab";
 import ImportantFilesTab from "./ImportantFilesTab";
 
-export function DashboardContent({active,data}: {active: TabKey;data: RepoData;}) {
+export function DashboardContent({active,data, aiData}: {active: TabKey;data: RepoData, aiData: RepoData | null}) {
     return (
         <motion.div
             key={active}
@@ -15,7 +15,7 @@ export function DashboardContent({active,data}: {active: TabKey;data: RepoData;}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
         >
-            {active === "overview" && <OverviewTab data={data} />}
+            {active === "overview" && <OverviewTab data={data} aiData={aiData} />}
             {active === "structure" && <StructureTab data={data} />}
             {active === "techstack" && <TechStackTab data={data} />}
             {active === "files" && <ImportantFilesTab data={data} />}

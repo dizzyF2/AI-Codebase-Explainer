@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Github } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
     return (
@@ -37,13 +36,7 @@ export default function Navbar() {
             </Link>
             </div>
 
-            {/* CTA */}
-            <Button
-            size="sm"
-            className="bg-indigo-600 hover:bg-indigo-500 text-white border-0 rounded-md px-4 py-2 text-sm font-medium"
-            >
-            Analyze Repo
-            </Button>
+            <div></div>
         </div>
         </nav>
     );

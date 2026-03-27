@@ -3,7 +3,7 @@ import React from 'react'
 import { RepoData } from '@/types';
 import { Button } from '@/components/ui/button';
 
-function RepoHeader({data,}: {data: RepoData}) {
+function RepoHeader({data, onAnalyzeClick, loadingAI}: {data: RepoData, onAnalyzeClick: () => void, loadingAI: boolean}) {
     return (
     <div className="mb-6">
         <div className="mb-3 flex items-center gap-2 text-xs text-slate-500">
@@ -47,12 +47,14 @@ function RepoHeader({data,}: {data: RepoData}) {
                 <Download className="h-4 w-4" />
                 Export Report
             </Button>
-            <Button
+            <Button 
                 size="sm"
                 className="gap-2 bg-indigo-600 text-white hover:bg-indigo-500"
+                onClick={onAnalyzeClick}
+                disabled={loadingAI}
             >
                 <Bot className="h-4 w-4" />
-                Ask AI
+                {loadingAI ? "Analyzing..." : "Analyze with Ai"}
             </Button>
             </div>
         </div>

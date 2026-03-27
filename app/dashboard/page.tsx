@@ -3,7 +3,7 @@
 import MainContent from '@/components/Dashboard/layout/MainContent'
 import SidebarWrapper from '@/components/Dashboard/layout/SidebarWrapper'
 import Navbar from '@/components/navbar'
-import { GitHubContent, ImportantFile, RepoData, TabKey, TechItem } from '@/types';
+import { GitHubContent, ImportantFile, RepoData, TabKey } from '@/types';
 import { FileSearch, FolderTree, Layers, LayoutDashboard } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -15,6 +15,10 @@ function DashboardPage() {
     
     const [activeTab, setActiveTab] = useState<TabKey>("overview");
     const [data, setData] = useState<RepoData | null>(null);
+
+    const [aiData, setAiData] = useState<RepoData | null>(null);
+    const [loadingAI, setLoadingAI] = useState(false);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -29,79 +33,55 @@ function DashboardPage() {
 
     useEffect(() => {
         const fetchRepo = async () => {
-        if (!owner || !name) return;
+            if (!owner || !name) return;
 
-        try {
-            setLoading(true);
+            try {
+                setLoading(true);
 
-            const res = await fetch("/api/github", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ owner, repo: name }),
-            });
+                const res = await fetch("/api/github", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ owner, repo: name }),
+                });
 
-            const result = await res.json();
-            console.log(result)
+                const result = await res.json();
+                console.log("GitHub DATA:", result);
 
-            if (!res.ok) {
-            throw new Error(result.error || "Failed to fetch repo");
-            }
+                if (!res.ok) {
+                throw new Error(result.error || "Failed to fetch repo");
+                }
 
-            const importantFiles: ImportantFile[] = [];
+                const importantFiles: ImportantFile[] = [];
 
-            if (result.readmeContent) {
+                if (result.readmeContent) {
                 importantFiles.push({
                     name: "README.md",
                     description: "Project documentation and overview",
                     ext: "MD",
                     icon: "book",
                 });
-            }
+                }
 
-            if (result.packageJsonContent) {
+                if (result.packageJsonContent) {
                 importantFiles.push({
                     name: "package.json",
                     description: "Project dependencies and scripts",
                     ext: "JSON",
                     icon: "gear",
                 });
-            }
+                }
 
-            const aiRes = await fetch("/api/openai-analyze", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    owner,
-                    repo: name,
-                    readmeContent: result.readmeContent,
-                    packageJsonContent: result.packageJsonContent,
-                    forceRefresh: true,
-                }),
-            });
-
-            const aiData = await aiRes.json();
-            console.log("AI DATA:", aiData);
-
-            if (!aiRes.ok) {
-            throw new Error(aiData.error || "AI failed");
-            }
-
-            const normalizedTechStack = (aiData.data?.techStack || []).map((tech: TechItem) => ({
-            name: tech.name?.trim?.() || "Unknown",
-            category: tech.category?.toUpperCase?.() || "TOOLING",
-            }));
-
-            const repoData: RepoData = {
+                const repoData: RepoData = {
                 repoName: `${owner}/${name}`,
                 branch: result.data.branch || "main",
                 stars: result.data.stars || 0,
                 forks: result.data.forks || 0,
                 language: result.data.language || "Unknown",
 
-                summary: aiData.data?.summary || "",
-                summaryDetail: aiData.data?.summaryDetail || "",
+                summary: "",
+                summaryDetail: "",
 
                 structure: result.data.structure.map((file: GitHubContent) => ({
                     name: file.name,
@@ -109,25 +89,43 @@ function DashboardPage() {
                     children: file.type === "dir" ? [] : undefined,
                 })),
 
-                techStack: normalizedTechStack,
+                techStack: [],
                 importantFiles,
 
                 readmeContent: result.readmeContent,
                 packageJsonContent: result.packageJsonContent,
-            };
+                };
 
-            setData(repoData);
+                setData(repoData);
+            } catch (err: unknown) {
+                const message =
+                err instanceof Error ? err.message : "Something went wrong";
+                setError(message);
+            } finally {
+                setLoading(false);
+            }
 
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : "Something went wrong"
-            setError(message);
-        } finally {
-            setLoading(false);
-        }
         };
-
         fetchRepo();
     }, [owner, name]);
+
+    const handleAnalyzeClick = async () => {
+        if (!data) return;
+
+        setLoadingAI(true);
+        const res = await fetch("/api/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                readmeContent: data.readmeContent,
+                packageJsonContent: data.packageJsonContent,
+            }),
+        });
+
+        const json = await res.json();
+        setAiData(json.data);
+        setLoadingAI(false);
+    };
 
 
     if (loading) {
@@ -146,14 +144,20 @@ function DashboardPage() {
         );
     }
 
-    // Safety check
     if (!data) return null;
     return (
         <div className="min-h-screen bg-[#0a0f1e] text-white">
             <Navbar />
             <div className="flex pt-14">
                 <SidebarWrapper data={data} TABS={TABS} activeTab={activeTab} setActiveTab={setActiveTab}/>
-                <MainContent data={data} activeTab={activeTab} setActiveTab={setActiveTab}/>
+                <MainContent 
+                    data={data} 
+                    activeTab={activeTab} 
+                    setActiveTab={setActiveTab}
+                    onAnalyzeClick={handleAnalyzeClick}
+                    aiData={aiData}
+                    loadingAI={loadingAI}
+                />
             </div>
         </div>
     )
